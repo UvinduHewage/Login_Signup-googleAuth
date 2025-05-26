@@ -24,7 +24,7 @@ This is a simple and secure Login and Signup web application built using **React
 ### 🛠️ Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/login-signup.git
+git clone https://github.com/UvinduHewage/Login_Signup-googleAuth.git
 cd login-signup
 npm install
 npm start
