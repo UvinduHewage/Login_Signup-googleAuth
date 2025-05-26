@@ -1,79 +1,95 @@
-import React, { useState, useEffect } from 'react';
-import './App.css'; // Import your App.css'; // Make sure to create this CSS file
+import { motion } from 'framer-motion';
+import { auth } from './firebase';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Dashboard = () => {
-  const [greeting, setGreeting] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+  const user = auth.currentUser;
 
-  // Update greeting based on time
   useEffect(() => {
-    const updateGreeting = () => {
-      const hours = currentTime.getHours();
-      let newGreeting = '';
-      
-      if (hours < 12) {
-        newGreeting = 'Good Morning';
-      } else if (hours >= 12 && hours < 17) {
-        newGreeting = 'Good Afternoon';
-      } else {
-        newGreeting = 'Good Evening';
-      }
-      
-      setGreeting(newGreeting);
-    };
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
-    updateGreeting();
-    
-    // Update time every minute
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    
-    return () => clearInterval(timer);
-  }, [currentTime]);
+  const handleLogout = () => {
+    auth.signOut();
+    navigate('/');
+  };
 
-  // Toggle sidebar for mobile responsiveness
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  // Function to get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
   return (
-    <div className={`dashboard-container ${isSidebarOpen ? '' : 'sidebar-collapsed'}`}>
-      {/* Header Component */}
-      <header className="dashboard-header">
-        <button className="menu-toggle" onClick={toggleSidebar}>
-          ☰
-        </button>
-        <div className="header-content">
-          <h1>{greeting}, User!</h1>
-          <div className="time-display">
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </div>
-        </div>
-      </header>
-
-      {/* Sidebar Component */}
-      <aside className="dashboard-sidebar">
-        <nav>
-          <ul>
-            <li>Dashboard</li>
-            <li>Profile</li>
-            <li>Settings</li>
-            <li>Logout</li>
-          </ul>
-        </nav>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="dashboard-main">
-        <div className="dashboard-content">
-          <h2>Welcome to Your Dashboard</h2>
-          <p>Here's your personalized content area.</p>
-          {/* Add your dashboard widgets/content here */}
-        </div>
-      </main>
-    </div>
+    <motion.div
+      className="dashboard-container"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="dashboard-card"
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring' }}
+      >
+        <motion.div
+          className="avatar"
+          initial={{ rotate: -10 }}
+          animate={{ rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="Profile" />
+          ) : (
+            <div className="avatar-fallback">
+              {user?.displayName?.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </motion.div>
+        
+        <motion.h2
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="greeting-message"
+        >
+          {getGreeting()}
+        </motion.h2>
+        
+        <motion.h1
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {user?.displayName}
+        </motion.h1>
+        
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          {user?.email}
+        </motion.p>
+        
+        <motion.button
+          onClick={handleLogout}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="logout-btn"
+        >
+          Sign Out
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 };
 
